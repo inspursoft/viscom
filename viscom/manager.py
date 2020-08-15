@@ -23,9 +23,13 @@ def process_uploaded_image(app, capture_item, uploaded_file=None, is_remove=Fals
 
 def add_capture_item(app, capture_item, file):
   app.logger.info("Adding capture item: %s to db." % (capture_item,))
-  def callback(app):
-    process_uploaded_image(app, capture_item, uploaded_file=file)
-    db.create_capture_item(app, capture_item)
+  def callback(app):   
+    try:
+      get_capture_item(app, capture_item.group_name, capture_item.source_name)
+    except VisComException as e:
+      if e.status_code == 404:
+        process_uploaded_image(app, capture_item, uploaded_file=file)
+        db.create_capture_item(app, capture_item)
   db.DBT.execute_in_tx(app, callback)
 
 def modify_capture_item(app, capture_item, file):
@@ -33,8 +37,14 @@ def modify_capture_item(app, capture_item, file):
   if not (hasattr(capture_item, "group_name") or hasattr(capture_item, "source_name")):
     raise VisComException(400, "Missing group_name attr in object: %s" % (capture_item))
   def callback(app):
-    process_uploaded_image(app, capture_item, uploaded_file=file)
-    db.update_capture_item(app, capture_item)
+    try:
+      get_capture_item(app, capture_item.group_name, capture_item.source_name)
+      process_uploaded_image(app, capture_item, uploaded_file=file)
+      db.update_capture_item(app, capture_item)
+    except VisComException as e:
+      if e.status_code == 404:
+        app.logger.error("Capture item: %s has not been created yet.", capture_item)
+        raise VisComException(412, "Capture item: %s has not been created yet" % (capture_item,))
   db.DBT.execute_in_tx(app, callback)
 
 def get_capture_item_list(app, group_name=None):
