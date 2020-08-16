@@ -1,16 +1,36 @@
 import viscom.db as db
 from viscom.model import VisComException, CaptureItem
 import datetime, os
+from viscom.util import SSHUtil
 
 def get_upload_path(app, group_name):
   return os.path.join(app.instance_path, "upload", group_name)
 
+def sync_remote_file(app, capture_item, is_remove=False):
+  src_path = os.path.dirname(os.path.dirname(capture_item.source_path))
+  dst_path = app.config["SSH_ROOT_DIR"]
+  app.logger.info("Src path: %s", src_path)
+  app.logger.info("Dst path: %s", dst_path)
+  custom_conf = {
+    "HOST": app.config["SSH_HOST"],
+    "USERNAME": app.config["SSH_USERNAME"],
+    "PASSWORD": app.config["SSH_PASSWORD"]
+  }
+  if is_remove:
+    rel_path = os.path.relpath(capture_item.source_path, os.path.join(app.instance_path, "upload"))
+    remote_path = os.path.join(app.config["SSH_ROOT_DIR"], rel_path)
+    app.logger.info("Removing target at remote path: %s", remote_path)
+    SSHUtil.exec_script(app, "rm", "-f", remote_path, conf=custom_conf)
+  else:
+    SSHUtil.secure_copy(app, src_path, dst_path, conf=custom_conf)
+
 def process_uploaded_image(app, capture_item, uploaded_file=None, is_remove=False):
   upload_path = get_upload_path(app, capture_item.group_name)
   if is_remove:
+    sync_remote_file(app, capture_item, is_remove=True)
     os.remove(capture_item.source_path)
     db.delete_capture_item(app, capture_item)
-    try:  
+    try:
       os.removedirs(upload_path)
     except OSError as e:
       app.logger.error("Failed to remove capture item source with error: %s" % (e,))
@@ -20,6 +40,7 @@ def process_uploaded_image(app, capture_item, uploaded_file=None, is_remove=Fals
     app.logger.info("Saving uploaded image to: %s", upload_path)
     capture_item.f_source_path = os.path.join(upload_path, capture_item.source_name)
     uploaded_file.save(capture_item.f_source_path)
+    sync_remote_file(app, capture_item)
 
 def add_capture_item(app, capture_item, file):
   app.logger.info("Adding capture item: %s to db." % (capture_item,))
