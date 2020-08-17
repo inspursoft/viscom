@@ -1,8 +1,10 @@
-from flask import Blueprint, current_app, jsonify, request, abort, send_from_directory
+from flask import Blueprint, current_app, jsonify, request, abort, send_from_directory, Response
 import viscom.manager as m
 from viscom.model import VisComException, CaptureItem, Encoder
 import json, os
 import traceback
+
+import requests
 
 hnd = Blueprint("hnd", __name__, url_prefix="/api")
 
@@ -31,17 +33,17 @@ def process_capture():
     source_name = request.form["source_name"]
     if not source_name:
       return abort(400, "Source name is required.")
-    if "capture_image" not in request.files:
-      return abort(400, "Upload captured image is required.")
+    if "capture_images" not in request.files:
+      return abort(400, "Upload captured_images form field is required.")
     try:
-      file = request.files["capture_image"]
+      file_list = request.files.getlist("capture_images")
       c = CaptureItem(group_name, source_name)
       action = ""
       if request.method == "POST":
-        m.add_capture_item(current_app, c, file)
+        m.add_capture_item(current_app, c, file_list)
         action = "added"
       elif request.method == "PUT":
-        m.modify_capture_item(current_app, c, file)
+        m.modify_capture_item(current_app, c, file_list)
         action = "modified"
       return jsonify(message="Successfully %s capture item." % (action,))
     except VisComException as e:
@@ -53,13 +55,9 @@ def process_capture():
     group_name = request.args.get("group_name", None)
     if not group_name:
       return abort(400, "Group name is required.")
-    source_name = request.args.get("source_name", None)
-    if not source_name:
-      return abort(400, "Source name is required.")
     try:
-      m.remove_capture_item(current_app, group_name, source_name)
-      return jsonify(message="Successfully removed capture item for group name: %s and source name: %s" %
-        (group_name, source_name))
+      m.remove_capture_item(current_app, group_name)
+      return jsonify(message="Successfully removed capture item for group name: %s" % (group_name,))
     except VisComException as e:
       msg = "Failed to remove capture item: %s" % (e.message)
       current_app.logger.error(msg)

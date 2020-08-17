@@ -37,10 +37,10 @@ def delete_capture_group(app, roup_name):
     delete from capture_item where group_name = ?
   ''', (group_name,))
 
-def delete_capture_item(app, capture_item):
+def delete_capture_item(app, group_name):
   tx_exec(app, '''
-    delete from capture_item where group_name = ? and source_name = ?
-  ''', (capture_item.group_name, capture_item.source_name))
+    delete from capture_item where group_name = ?
+  ''', (group_name,))
 
 def get_capture_item_list():
     return get_db().execute('''
@@ -53,6 +53,12 @@ def get_capture_item_list_by_group(group_name):
         from capture_item where group_name = ? 
     ''', (group_name,)).fetchall()
 
+def checkout_capture_item(group_name, source_name):
+  return get_db().execute('''
+      select group_name, source_name, source_path, creation_time, update_time
+        from capture_item where group_name = ? and source_name like ?
+    ''', (group_name, "{}%".format(source_name,))).fetchall()
+
 def get_capture_item(group_name, source_name):
   return get_db().execute('''
       select group_name, source_name, source_path, creation_time, update_time 
@@ -60,10 +66,9 @@ def get_capture_item(group_name, source_name):
     ''', (group_name, source_name)).fetchone()
 
 def tx_exec(app, sql, *params):
-  conn = app.config["CONN"]
-  if not conn:
-    conn = get_db()
-  else:
+  conn = get_db()
+  if "CONN" in app.config:
+    conn = app.config["CONN"]
     app.logger.debug("Execute SQL in transaction...")
     conn.execute(sql, *params)
     return
