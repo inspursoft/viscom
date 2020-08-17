@@ -1,6 +1,6 @@
-from flask import Blueprint, current_app, jsonify, request, abort, send_from_directory, Response
+from flask import Blueprint, current_app, jsonify, request, abort, send_from_directory, Response, render_template
 import viscom.manager as m
-from viscom.model import VisComException, CaptureItem, Encoder
+from viscom.model import VisComException, CaptureItem, Encoder, VideoCamera
 import json, os
 import traceback
 
@@ -62,3 +62,17 @@ def process_capture():
       msg = "Failed to remove capture item: %s" % (e.message)
       current_app.logger.error(msg)
       return abort(e.status_code, msg)
+
+def gen(camera):
+  while True:
+    frame = camera.get_frame()
+    yield(b'--frame\r\n'
+      b'Content-Type: image/jpeg\r\n\r\n'+frame+b'\r\n\n')
+
+@hnd.route("/showtime")
+def showtime():
+  return render_template('showtime.html')
+
+@hnd.route("/video", methods=["GET"])
+def video():
+  return Response(gen(VideoCamera()), mimetype='multipart/x-mixed-replace; boundary=frame')

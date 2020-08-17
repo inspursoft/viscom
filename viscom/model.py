@@ -1,4 +1,4 @@
-import json
+import json, cv2
 
 class VisComException(Exception):
   def __init__(self, status_code=500, message=""):
@@ -47,3 +47,17 @@ class Encoder:
   @staticmethod
   def to_json(obj):
     return json.loads(json.dumps(obj, default=lambda o: o.__dict__))
+
+class VideoCamera:
+  def __init__(self):
+    self.video = cv2.VideoCapture(0)
+
+  def __del__(self):
+    self.video.release()
+
+  def get_frame(self):
+    success, image = self.video.read()
+    if success:
+      _, jpeg = cv2.imencode('.jpg', image)
+      return jpeg.tobytes()
+    raise VisComException(500, "Failed to read video from camera.")

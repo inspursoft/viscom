@@ -9,6 +9,7 @@ setup(
     "flask",
     "requests",
     "scp",
-    "paramiko"
+    "paramiko",
+    "opencv-python-headless"
   ]
 )
