@@ -7,9 +7,6 @@ setup(
   packages=find_packages(),
   install_requires=[
     "flask",
-    "requests",
-    "scp",
-    "paramiko",
-    "opencv-python-headless"
+    "requests"
   ]
 )
