@@ -5,13 +5,11 @@ import viscom.db as db
 def create_app():
   app = Flask(__name__, instance_relative_config=True)
   app.logger.debug("App instance path is: %s" % app.instance_path)
-  config_path = os.path.join(app.instance_path, "config.json")
   try:
     os.makedirs(app.instance_path)
   except OSError:
     pass
   app.config.from_mapping(DATABASE=os.path.join(app.instance_path, "viscom.db"))
-  app.config.from_json(config_path)
   
   init_app(app)
 

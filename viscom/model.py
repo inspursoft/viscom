@@ -1,4 +1,4 @@
-import json, cv2
+import json, cv2, time
 
 class VisComException(Exception):
   def __init__(self, status_code=500, message=""):
@@ -61,3 +61,9 @@ class VideoCamera:
       _, jpeg = cv2.imencode('.jpg', image)
       return jpeg.tobytes()
     raise VisComException(500, "Failed to read video from camera.")
+
+  def get_stream(self):
+    success, image = self.video.read()
+    if success:
+      return image
+    raise VisComException(500, "Failed to get stream from camera.")
