@@ -1,0 +1,26 @@
+FROM sixsq/opencv-python:latest-arm64
+MAINTAINER wangkun_lc@inspur.com
+
+RUN apt-get update -y && \
+    apt install cmake build-essential libsm6 libxrender1 libxext-dev libssl-dev python3-dev fswebcam -y && \
+    apt clean
+
+RUN mkdir /viscom /viscom/instance
+
+COPY setup.py /viscom/setup.py
+COPY viscom /viscom/viscom
+
+WORKDIR /viscom
+
+RUN pip install -i https://pypi.mirrors.ustc.edu.cn/simple -e .
+
+WORKDIR /
+VOLUME [ "/viscom/instance" ]
+EXPOSE 5000
+
+ENV FLASK_APP viscom
+ENV FLASK_ENV development
+ENV LC_ALL C.UTF-8
+ENV LANG C.UTF-8 
+ENV PATH $PATH:/usr/bin
+CMD [ "flask", "run", "-h", "0.0.0.0"]

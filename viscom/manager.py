@@ -115,7 +115,11 @@ def face_detect(app, image):
   detector = dlib.get_frontal_face_detector()
   captured = cv2.imread(image)
   img_gray = cv2.cvtColor(captured, cv2.COLOR_BGR2GRAY)
-  return detector(img_gray, 1)
+  is_detected = False
+  if detector(img_gray, 1):
+    is_detected = True
+  cv2.destroyAllWindows()
+  return is_detected
 
 def image_gray(app, file_path):
   detector = dlib.get_frontal_face_detector()
@@ -135,3 +139,4 @@ def image_gray(app, file_path):
     face_img = img_gray[face_top:face_bottom, face_left:face_right]  
     cv2.imwrite(file_path, face_img)
   app.logger.debug("No found for person face...")
+  cv2.destroyAllWindows()

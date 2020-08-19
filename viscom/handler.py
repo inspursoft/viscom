@@ -82,6 +82,7 @@ def face_detect():
   c = VideoCamera()
   with open("c.jpg", "wb") as f:
     f.write(c.get_frame())
+    del c
     send_file(f, mimetype="Content-Type: image/jpge", as_attachment=True, attachment_filename="c.jpg")
   if m.face_detect(current_app, "c.jpg"):
     return jsonify(message="Face detected.")
