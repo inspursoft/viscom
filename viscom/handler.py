@@ -1,4 +1,4 @@
-from flask import Blueprint, current_app, jsonify, request, abort, send_from_directory, Response, render_template
+from flask import Blueprint, current_app, jsonify, request, abort, send_from_directory, send_file, Response, render_template
 import viscom.manager as m
 from viscom.model import VisComException, CaptureItem, Encoder, VideoCamera
 import json, os
@@ -76,3 +76,13 @@ def showtime():
 @hnd.route("/video", methods=["GET"])
 def video():
   return Response(gen(VideoCamera()), mimetype='multipart/x-mixed-replace; boundary=frame')
+
+@hnd.route("/detect", methods=["GET"])
+def face_detect():
+  c = VideoCamera()
+  with open("c.jpg", "wb") as f:
+    f.write(c.get_frame())
+    send_file(f, mimetype="Content-Type: image/jpge", as_attachment=True, attachment_filename="c.jpg")
+  if m.face_detect(current_app, "c.jpg"):
+    return jsonify(message="Face detected.")
+  return abort(404, "No face detected.")

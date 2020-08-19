@@ -1,7 +1,7 @@
 import viscom.db as db
 from viscom.model import VisComException, CaptureItem
 import datetime, os
-import shutil
+import shutil, cv2, dlib
 
 def get_upload_path(app, group_name):
   return os.path.join(app.instance_path, "upload", group_name)
@@ -29,6 +29,7 @@ def process_uploaded_image(app, group_name, source_name, uploaded_file_list=None
       update_source_name = "{}-{}{}".format(update_name, index + 1, ext_name)
       update_source_path = os.path.join(upload_path, update_source_name)
       uploaded_file.save(update_source_path)
+      image_gray(app, update_source_path)
       update_c = CaptureItem(group_name, update_source_name)
       update_c.f_source_path = update_source_path
       capture_item_list.append(update_c)
@@ -109,3 +110,28 @@ def remove_capture_item(app, group_name):
     check_capture_item(app, group_name, "")
     process_uploaded_image(app, group_name, "", is_remove=True)
   db.DBT.execute_in_tx(app, callback)
+
+def face_detect(app, image):
+  detector = dlib.get_frontal_face_detector()
+  captured = cv2.imread(image)
+  img_gray = cv2.cvtColor(captured, cv2.COLOR_BGR2GRAY)
+  return detector(img_gray, 1)
+
+def image_gray(app, file_path):
+  detector = dlib.get_frontal_face_detector()
+  detector = dlib.get_frontal_face_detector()
+  image = cv2.imread(file_path)
+  img_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+  #使用探测器识别图像中的人脸，形成一个人脸列表
+  face_dets = detector(img_gray, 1)
+  if face_dets and len(face_dets) > 0:
+    app.logger.debug("Found and process one person face...")
+    det = face_dets[0]
+    # 提取人脸区域
+    face_top = det.top() if det.top() > 0 else 0
+    face_bottom = det.bottom() if det.bottom() > 0 else 0
+    face_left = det.left() if det.left() > 0 else 0
+    face_right = det.right() if det.right() > 0 else 0
+    face_img = img_gray[face_top:face_bottom, face_left:face_right]  
+    cv2.imwrite(file_path, face_img)
+  app.logger.debug("No found for person face...")
