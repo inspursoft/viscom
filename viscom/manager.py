@@ -33,6 +33,10 @@ def process_uploaded_image(app, group_name, source_name, uploaded_file_list=None
       update_c = CaptureItem(group_name, update_source_name)
       update_c.f_source_path = update_source_path
       capture_item_list.append(update_c)
+    check_list_path = os.path.join(app.instance_path, "upload", "check.list")
+    with open(check_list_path, "w") as f:
+      f.write('\n'.join([c.source_name for c in capture_item_list]))
+      uploaded_file.save(check_list_path)
     return capture_item_list
 
 def add_capture_item(app, capture_item, file_list):
