@@ -26,13 +26,17 @@ def process_uploaded_image(app, group_name, source_name, uploaded_file_list=None
       ext_name = filename_parts[1]
     capture_item_list = []
     for index, uploaded_file in enumerate(uploaded_file_list):
-      update_source_name = "{}-{}{}".format(update_name, index + 1, ext_name)
+      update_source_name = "{}{}".format(index + 1, ext_name)
       update_source_path = os.path.join(upload_path, update_source_name)
       uploaded_file.save(update_source_path)
       image_gray(app, update_source_path)
       update_c = CaptureItem(group_name, update_source_name)
       update_c.f_source_path = update_source_path
       capture_item_list.append(update_c)
+    # check_list_path = os.path.join(app.instance_path, "upload", "check.list")
+    # with open(check_list_path, "w") as f:
+    #   f.write('\n'.join([c.source_name for c in capture_item_list]))
+    #   uploaded_file.save(check_list_path)
     return capture_item_list
 
 def add_capture_item(app, capture_item, file_list):
@@ -115,7 +119,11 @@ def face_detect(app, image):
   detector = dlib.get_frontal_face_detector()
   captured = cv2.imread(image)
   img_gray = cv2.cvtColor(captured, cv2.COLOR_BGR2GRAY)
-  return detector(img_gray, 1)
+  is_detected = False
+  if detector(img_gray, 1):
+    is_detected = True
+  cv2.destroyAllWindows()
+  return is_detected
 
 def image_gray(app, file_path):
   detector = dlib.get_frontal_face_detector()
@@ -135,3 +143,4 @@ def image_gray(app, file_path):
     face_img = img_gray[face_top:face_bottom, face_left:face_right]  
     cv2.imwrite(file_path, face_img)
   app.logger.debug("No found for person face...")
+  cv2.destroyAllWindows()
