@@ -49,21 +49,27 @@ class Encoder:
     return json.loads(json.dumps(obj, default=lambda o: o.__dict__))
 
 class VideoCamera:
-  def __init__(self):
-    self.video = cv2.VideoCapture(1)
+  
+  video = None
 
-  def __del__(self):
-    self.video.release()
+  @classmethod
+  def __get_video(cls):
+    if not cls.video:
+      cls.video = cv2.VideoCapture(0)
 
-  def get_frame(self):
-    success, image = self.video.read()
+  @classmethod
+  def get_frame(cls):
+    cls.__get_video()
+    success, image = cls.video.read()
     if success:
       _, jpeg = cv2.imencode('.jpg', image)
       return jpeg.tobytes()
     raise VisComException(500, "Failed to read video from camera.")
 
-  def get_stream(self):
-    success, image = self.video.read()
+  @classmethod
+  def get_stream(cls):
+    cls.__get_video()
+    success, image = cls.video.read()
     if success:
       return image
     raise VisComException(500, "Failed to get stream from camera.")
