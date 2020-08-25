@@ -55,7 +55,16 @@ class VideoCamera:
   @classmethod
   def __get_video(cls):
     if not cls.video:
-      cls.video = cv2.VideoCapture(0)
+      cid = 0
+      while True:
+        c = cv2.VideoCapture(cid)
+        ret, frame = c.read()
+        if ret:
+          cls.video = c
+          break
+        if cid > 2:
+          raise VisComException("Failed to get camera")
+        cid += 1
 
   @classmethod
   def get_frame(cls):
