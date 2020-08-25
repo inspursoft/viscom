@@ -55,7 +55,10 @@ class VideoCamera:
   @classmethod
   def __get_video(cls):
     if not cls.video:
-      cls.video = cv2.VideoCapture(0)
+      c = cv2.VideoCapture(0)
+      if not c.isOpened():
+        c = cv2.VideoCapture(1)
+      cls.video = c
 
   @classmethod
   def get_frame(cls):
