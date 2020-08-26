@@ -14,6 +14,8 @@ WORKDIR /viscom
 
 RUN pip install -i https://pypi.mirrors.ustc.edu.cn/simple -e .
 
+COPY viscom.db /viscom
+
 EXPOSE 5000
 
 ENV FLASK_APP viscom
