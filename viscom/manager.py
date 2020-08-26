@@ -29,14 +29,12 @@ def process_uploaded_image(app, group_name, source_name, uploaded_file_list=None
       update_source_name = "{}{}".format(index + 1, ext_name)
       update_source_path = os.path.join(upload_path, update_source_name)
       uploaded_file.save(update_source_path)
-      image_gray(app, update_source_path)
-      update_c = CaptureItem(group_name, update_source_name)
-      update_c.f_source_path = update_source_path
-      capture_item_list.append(update_c)
-    # check_list_path = os.path.join(app.instance_path, "upload", "check.list")
-    # with open(check_list_path, "w") as f:
-    #   f.write('\n'.join([c.source_name for c in capture_item_list]))
-    #   uploaded_file.save(check_list_path)
+      has_detected_face = image_gray(app, update_source_path)
+      if has_detected_face:
+        update_c = CaptureItem(group_name, update_source_name)
+        update_c.f_source_path = update_source_path
+        capture_item_list.append(update_c)
+    cv2.destroyAllWindows()
     return capture_item_list
 
 def add_capture_item(app, capture_item, file_list):
@@ -77,7 +75,7 @@ def get_capture_item_list(app, group_name=None):
     app.logger.info("Getting capture item list by group name: %s", group_name)
     r = db.get_capture_item_list_by_group(group_name)
   if not r:
-    raise VisComException(404, "None of capture item(s) found.")
+    return []
   app.logger.debug("Fetched %d item(s) from capture group." % (len(r)))
   capture_item_list = []
   for item in r:
@@ -132,6 +130,7 @@ def image_gray(app, file_path):
   img_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
   #使用探测器识别图像中的人脸，形成一个人脸列表
   face_dets = detector(img_gray, 1)
+  has_detected_face = True
   if face_dets and len(face_dets) > 0:
     app.logger.debug("Found and process one person face...")
     det = face_dets[0]
@@ -145,4 +144,5 @@ def image_gray(app, file_path):
   else:
     app.logger.debug("No found for person face...")
     os.remove(file_path)
-  cv2.destroyAllWindows()
+    has_detected_face = False
+  return has_detected_face
