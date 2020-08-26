@@ -17,7 +17,7 @@ RUN pip install -i https://pypi.mirrors.ustc.edu.cn/simple -e .
 COPY viscom.db /viscom
 
 EXPOSE 5000
-
+VOLUME [ "/viscom/instance" ]
 ENV FLASK_APP viscom
 ENV FLASK_ENV development
 ENV LC_ALL C.UTF-8
