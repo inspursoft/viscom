@@ -44,7 +44,8 @@ def delete_capture_item(app, group_name):
 
 def get_capture_item_list():
     return get_db().execute('''
-      select group_name, min(source_name), min(creation_time), min(update_time)
+      select group_name, min(source_name) source_name, min(source_path) source_path, 
+          min(creation_time) creation_time, min(update_time) update_time
         from capture_item group by group_name''').fetchall()
 
 def get_capture_item_list_by_group(group_name):
