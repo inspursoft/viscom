@@ -11,8 +11,6 @@ spec:
     ports:
     - containerPort: 5000
     volumeMounts:
-    - name: vis-instance
-      mountPath: /viscom/instance
     - name: dev-video0
       mountPath: /dev/video0
     - name: dev-video1
@@ -21,9 +19,6 @@ spec:
       privileged: true
   hostNetwork: true
   volumes:
-  - name: vis-instance
-    hostPath:
-      path: /root/viscom/instance
   - name: dev-video0
     hostPath:
       path: /dev/video0
