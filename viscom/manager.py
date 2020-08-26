@@ -142,5 +142,7 @@ def image_gray(app, file_path):
     face_right = det.right() if det.right() > 0 else 0
     face_img = img_gray[face_top:face_bottom, face_left:face_right]  
     cv2.imwrite(file_path, face_img)
-  app.logger.debug("No found for person face...")
+  else:
+    app.logger.debug("No found for person face...")
+    os.remove(file_path)
   cv2.destroyAllWindows()
