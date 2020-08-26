@@ -24,7 +24,10 @@ class CaptureItem(json.JSONEncoder):
 
   @f_creation_time.setter
   def f_creation_time(self, c):
-    self.creation_time = c.strftime("%Y-%m-%d %H:%I:%S")
+    try:
+      self.creation_time = c.strftime("%Y-%m-%d %H:%I:%S")
+    except:
+      self.creation_time = c
 
   @property
   def f_update_time(self):
@@ -32,7 +35,10 @@ class CaptureItem(json.JSONEncoder):
 
   @f_update_time.setter
   def f_update_time(self, u):
-    self.update_time = u.strftime("%Y-%m-%d %H:%I:%S")
+    try:
+      self.update_time = u.strftime("%Y-%m-%d %H:%I:%S")
+    except:
+      self.update_time = u
 
   def __str__(self):
     return "group_name: %s, source_name: %s" % (
